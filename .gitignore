@@ -1,0 +1,15 @@
+# Generated dataset output (reproducible by re-running generate_dataset.py)
+/dataset/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+build/
+dist/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

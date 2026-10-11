@@ -1,0 +1,14 @@
+[project]
+name = "htr-error-dataset"
+version = "0.1.0"
+description = "Generates a handwritten writing-error dataset by splicing real handwritten glyphs over other letters, for visual-grounding evaluation of handwriting OCR/VLM systems."
+requires-python = ">=3.10"
+dependencies = [
+    "datasets>=2.19",
+    "numpy>=1.26",
+    "pandas>=2.0",
+    "pillow>=10.0",
+    "sentencepiece>=0.2.0",
+    "torch>=2.2",
+    "transformers>=4.41,<5",
+]

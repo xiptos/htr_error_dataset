@@ -25,6 +25,11 @@ class SystemSpec:
     model_ref: str                 # HF repo (mlx_vlm) or local model ref (kraken/tesseract)
     prompt: Optional[str] = None   # None => no text prompt (image-only)
     max_tokens: int = 24
+    trust_remote_code: Optional[bool] = None  # None => mlx-vlm's default (mlx_vlm only)
+    processor_attrs: Optional[dict] = None    # attributes set on the loaded processor (mlx_vlm only)
+    unescape_template_newlines: bool = False  # repo's chat template has literal "\\n" (mlx_vlm only)
+    image_pad_frac: Optional[float] = None    # border added around each image, x its height (mlx_vlm only)
+    cleanup: Optional[str] = None  # extra scoring clean-up, a key of textmetrics.PREDICTION_CLEANERS
     notes: str = ""
 
 
@@ -136,6 +141,29 @@ SYSTEMS: list[SystemSpec] = [
         model_ref="mlx-community/LightOnOCR-1B-1025-bf16",
         prompt=None,  # runs image-only with no text prompt
         max_tokens=64,
+        processor_attrs={
+            "image_token": "<|image_pad|>",
+            "image_break_token": "<|vision_pad|>",
+            "image_end_token": "<|vision_end|>",
+        },
+        unescape_template_newlines=True,
+        image_pad_frac=0.5,
+        notes="Two repo/mlx-vlm mismatches (seen on mlx-vlm 0.7.6) are "
+              "worked around here; without them the model never sees the "
+              "image and emits the same text for every input. (1) The repo "
+              "loads as mlx-vlm's Mistral3Processor, whose default "
+              "[IMG]/[IMG_BREAK]/[IMG_END] tokens do not exist in this "
+              "tokenizer, so the image placeholder is never expanded into "
+              "patch tokens. (2) The repo's chat template contains literal "
+              "backslash-n sequences instead of newlines. With both fixed "
+              "it reads a printed test page correctly, but on the bare "
+              "word crops it often hallucinates a markdown document "
+              "instead of transcribing. image_pad_frac=0.5 (a border of "
+              "half the crop height, in the crop's own paper colour) was "
+              "chosen on a 100-pair sample by clean-image word accuracy: "
+              "56% unpadded, 91/89/90% with a 0.5/1/2x border; upscaling "
+              "the crop instead made it worse (54% at 2x, 5% at 4x, 0% at "
+              "8x -- it then answers with an image placeholder).",
     ),
     SystemSpec(
         name="deepseek_ocr",
@@ -145,19 +173,19 @@ SYSTEMS: list[SystemSpec] = [
         model_ref="mlx-community/DeepSeek-OCR-bf16",
         prompt="Free OCR.",  # the model card's default prompt
         max_tokens=64,
-        notes="As of mlx-vlm 0.7.1, loading this repo raises "
-              "'Unrecognized processing class': "
-              "mlx_vlm.models.deepseekocr.processing_deepseekocr registers "
-              "an AutoProcessor patch for model_type=='deepseekocr', but "
-              "the patch is not active when load() calls "
-              "AutoProcessor.from_pretrained, even if the submodule is "
-              "force-imported first. Reproduced on both the -bf16 and "
-              "-2-bf16 conversions. Looks like an upstream bug in "
-              "mlx-vlm's chained AutoProcessor monkey-patch "
-              "(github.com/Blaizzy/mlx-vlm) -- retry once a fix ships. "
-              "The official transformers path (deepseek-ai/DeepSeek-OCR) "
-              "is CUDA-only and would need local patching to run on Apple "
-              "Silicon.",
+        trust_remote_code=False,
+        cleanup="latex_math",
+        notes="trust_remote_code=False is required: the repo's config.json "
+              "auto_map otherwise makes transformers import the bundled "
+              "PyTorch modeling code just to load the tokenizer, and that "
+              "code needs addict/easydict and symbols removed in "
+              "transformers 5. mlx-vlm swallows the resulting ImportError "
+              "and reports a misleading 'Unrecognized processing class' "
+              "(seen on mlx-vlm 0.7.1 and 0.7.6). mlx-vlm's own "
+              "implementation needs none of that code. On isolated word "
+              "crops the model often answers in LaTeX math markup "
+              "(e.g. '\\[h e s\\]') rather than plain text; "
+              "cleanup='latex_math' unwraps that before scoring.",
     ),
     SystemSpec(
         name="qwen3_vl_2b",

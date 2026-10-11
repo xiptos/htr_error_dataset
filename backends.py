@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import glob
 import os
+import tempfile
 import time
 import uuid
 from typing import Iterable, Iterator, NamedTuple
@@ -73,23 +74,51 @@ def run_kraken(spec: SystemSpec, items: Iterable[tuple[str, str]]) -> Iterator[P
         yield Prediction(item_id, text, time.time() - t0)
 
 
+def _pad_image(image_path: str, frac: float, out_path: str) -> str:
+    """Save a copy of the image with a border of `frac` x its height on every
+    side, filled with the median colour of the image's own edge pixels."""
+    import numpy as np
+    from PIL import Image
+
+    img = Image.open(image_path).convert("RGB")
+    arr = np.asarray(img)
+    edge = np.concatenate([arr[0], arr[-1], arr[:, 0], arr[:, -1]])
+    fill = tuple(int(c) for c in np.median(edge, axis=0))
+    border = round(img.height * frac)
+    canvas = Image.new("RGB", (img.width + 2 * border, img.height + 2 * border), fill)
+    canvas.paste(img, (border, border))
+    canvas.save(out_path)
+    return out_path
+
+
 def run_mlx_vlm(spec: SystemSpec, items: Iterable[tuple[str, str]]) -> Iterator[Prediction]:
     from mlx_vlm import load, generate
     from mlx_vlm.prompt_utils import apply_chat_template
     from mlx_vlm.utils import load_config
 
-    model, processor = load(spec.model_ref)
+    load_kwargs = {}
+    if spec.trust_remote_code is not None:
+        load_kwargs["trust_remote_code"] = spec.trust_remote_code
+    model, processor = load(spec.model_ref, **load_kwargs)
+    for attr, value in (spec.processor_attrs or {}).items():
+        setattr(processor, attr, value)
     config = load_config(spec.model_ref)
     prompt_text = spec.prompt or ""
     prompt = apply_chat_template(processor, config, prompt_text, num_images=1)
+    if spec.unescape_template_newlines:
+        prompt = prompt.replace("\\n", "\n")
 
-    for item_id, image_path in items:
-        t0 = time.time()
-        result = generate(
-            model, processor, prompt, image=[image_path],
-            verbose=False, max_tokens=spec.max_tokens, temperature=0.0,
-        )
-        yield Prediction(item_id, result.text.strip(), time.time() - t0)
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        padded_path = os.path.join(tmp_dir, "padded.png")
+        for item_id, image_path in items:
+            t0 = time.time()
+            if spec.image_pad_frac:
+                image_path = _pad_image(image_path, spec.image_pad_frac, padded_path)
+            result = generate(
+                model, processor, prompt, image=[image_path],
+                verbose=False, max_tokens=spec.max_tokens, temperature=0.0,
+            )
+            yield Prediction(item_id, result.text.strip(), time.time() - t0)
 
 
 BACKEND_RUNNERS = {

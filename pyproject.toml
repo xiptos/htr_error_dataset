@@ -5,12 +5,13 @@ description = "Generates a handwritten writing-error dataset by splicing real ha
 requires-python = ">=3.10"
 dependencies = [
     "datasets>=2.19",
+    "ipykernel>=7.3.0",
     "numpy>=1.26",
     "pandas>=2.0",
     "pillow>=10.0",
     "sentencepiece>=0.2.0",
     "torch>=2.2",
-    "transformers>=4.41,<5",
+    "transformers>=4.41",
 ]
 
 [project.optional-dependencies]
@@ -24,8 +25,25 @@ notebooks = [
 # Running evaluate.py. mlx-vlm (the VLM backend) requires Apple Silicon;
 # tesseract/kraken are the two traditional-OCR backends and run anywhere.
 evaluate = [
-    "kraken>=5.0",
+    "kraken>=7.1",
     "mlx-vlm>=0.7.1; sys_platform == 'darwin'",
     "pytesseract>=0.3.10",
 ]
 all = ["htr-error-dataset[notebooks,evaluate]"]
+
+[tool.uv]
+# All three overrides relax pins declared by kraken 7:
+# - click: kraken caps it below 8.3, while the huggingface-hub required by
+#   transformers >=5.19 needs >=8.4.2. Without this uv settles on transformers
+#   5.17, which cannot load the TrOCR tokenizer.
+# - safetensors: kraken caps it below 0.8, while mlx-vlm's transformers
+#   (>=5.14) needs >=0.8. Without this uv falls back to kraken 6, which drags
+#   in torch 2.7 (crashes TrOCR on MPS) and numpy/scipy with no Python 3.13
+#   wheels.
+# - scipy: kraken pins 1.15.x, whose macOS arm64 wheel fails to load on
+#   macOS 27 (dlopen error in scipy.sparse.linalg); 1.16+ loads fine.
+override-dependencies = [
+    "click>=8.4.2",
+    "safetensors>=0.8",
+    "scipy>=1.16; python_version >= '3.11'",
+]

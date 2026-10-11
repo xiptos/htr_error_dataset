@@ -221,9 +221,23 @@ The systems evaluated are registered in `systems.py`:
 | olmOCR-2-7B | VLM | `mlx-vlm` |
 | GLM-4.6V / GLM-4.6V-Flash | VLM | `mlx-vlm` |
 
-> **Note:** DeepSeek-OCR fails to load under `mlx-vlm` 0.7.1 due to an
-> upstream `AutoProcessor` resolution bug (details in `systems.py`); retry
-> once a fix ships upstream.
+> **Note:** DeepSeek-OCR only loads under `mlx-vlm` with
+> `trust_remote_code=False` (set on its entry in `systems.py`, which also
+> explains why). On isolated word crops it mostly answers in LaTeX math
+> markup (e.g. `\[g o n e\]`) rather than plain text, so its entry sets
+> `cleanup="latex_math"`: `results.ipynb` unwraps that markup
+> (`strip_latex_math` in `textmetrics.py`) before the usual normalization.
+> Raw predictions on disk are left untouched.
+>
+> **Note:** LightOnOCR-1B needs two workarounds under `mlx-vlm` (image
+> placeholder tokens and escaped newlines in the repo's chat template, both
+> set on its entry in `systems.py`); without them the model never sees the
+> image. It is also the only system whose input is modified: each crop is
+> shown with a border of half its height, in the crop's own paper colour
+> (`image_pad_frac=0.5`), because on bare word crops this page-level model
+> often hallucinates a markdown document instead of transcribing. On a
+> 100-pair sample, clean-image word accuracy was 56% unpadded and 91% with
+> the border; upscaling the crops instead made it worse.
 
 Add, remove, or reconfigure a system by editing `SYSTEMS` in `systems.py`
 -- `evaluate.py` and `results.ipynb` read that registry, nothing else needs
@@ -278,7 +292,8 @@ Images referenced under `dataset/images/`:
 
 ### `results/predictions_scored.csv` (written by `results.ipynb`)
 
-All of the above, plus `pred_norm`/`gt_norm` (normalized text), `cer`
+All of the above, plus `pred_norm`/`gt_norm` (normalized text; `pred_norm`
+also applies a system's `cleanup`, if it has one), `cer`
 (character error rate), `exact_match`, and `repaired_to_original` (true
 when a corrupted-image prediction matches the *original* word instead of
 the displayed, corrupted one).

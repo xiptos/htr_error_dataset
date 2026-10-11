@@ -276,7 +276,7 @@ class TrOCRValidator:
 
     def read(self, img: Image.Image) -> str:
         pixel_values = self.processor(
-            images=img.convert("RGB")
+            images=img.convert("RGB"), return_tensors="pt"
         ).pixel_values.to(self.device)
         with torch.no_grad():
             ids = self.model.generate(pixel_values, max_new_tokens=20)

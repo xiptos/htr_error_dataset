@@ -24,6 +24,8 @@ from datasets import concatenate_datasets, load_dataset
 from PIL import Image
 from transformers import TrOCRProcessor, VisionEncoderDecoderModel
 
+from textmetrics import levenshtein
+
 IAM_LINES_META = "AlhitawiMohammed22/En_IAM_lines"  # text + original IAM filename (writer proxy)
 IAM_LINES_IMG = "Teklia/IAM-line"  # image + text, no writer id
 TROCR_MODEL = "microsoft/trocr-base-handwritten"
@@ -240,24 +242,6 @@ def writer_id_from_filename(file_name: str) -> str:
 # ---------------------------------------------------------------------------
 # TrOCR-based segmentation validation
 # ---------------------------------------------------------------------------
-
-
-def levenshtein(a: str, b: str) -> int:
-    if a == b:
-        return 0
-    la, lb = len(a), len(b)
-    if la == 0:
-        return lb
-    if lb == 0:
-        return la
-    prev = list(range(lb + 1))
-    for i, ca in enumerate(a, 1):
-        cur = [i] + [0] * lb
-        for j, cb in enumerate(b, 1):
-            cost = 0 if ca == cb else 1
-            cur[j] = min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost)
-        prev = cur
-    return prev[lb]
 
 
 def word_is_plausible(pred: str, clean_word: str) -> bool:

@@ -12,3 +12,20 @@ dependencies = [
     "torch>=2.2",
     "transformers>=4.41,<5",
 ]
+
+[project.optional-dependencies]
+# EDA / results notebooks (figures, dictionary lookups, Jupyter itself).
+notebooks = [
+    "ipykernel>=6.29",
+    "jupyter>=1.0",
+    "matplotlib>=3.8",
+    "nltk>=3.8",
+]
+# Running evaluate.py. mlx-vlm (the VLM backend) requires Apple Silicon;
+# tesseract/kraken are the two traditional-OCR backends and run anywhere.
+evaluate = [
+    "kraken>=5.0",
+    "mlx-vlm>=0.7.1; sys_platform == 'darwin'",
+    "pytesseract>=0.3.10",
+]
+all = ["htr-error-dataset[notebooks,evaluate]"]

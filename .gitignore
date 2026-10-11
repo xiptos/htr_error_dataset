@@ -1,13 +1,25 @@
-# Generated dataset output (reproducible by re-running generate_dataset.py)
+# Generated outputs (reproducible by re-running the scripts/notebooks)
 /dataset/
+/results/
+
+# Jupyter
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/
 
 # Python
 __pycache__/
-*.pyc
-.venv/
+*.py[cod]
 *.egg-info/
 build/
 dist/
+.venv/
+venv/
+
+# Caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+nltk_data/
 
 # OS / editor
 .DS_Store

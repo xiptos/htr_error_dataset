@@ -22,6 +22,7 @@ import pandas as pd
 import torch
 from datasets import concatenate_datasets, load_dataset
 from PIL import Image
+from tqdm import tqdm
 from transformers import TrOCRProcessor, VisionEncoderDecoderModel
 
 from textmetrics import levenshtein
@@ -354,11 +355,16 @@ def extract_glyph_banks(
 
     n_lines_processed = n_word_candidates = n_trocr_ok = n_letter_seg_ok = 0
 
+    total_lines = min(cfg.max_lines, sum(len(writer_line_texts[w]) for w in writer_ids_shuffled))
+    pbar = tqdm(total=total_lines, desc="Extracting glyphs", unit="line")
+
     for wid in writer_ids_shuffled:
         for text in writer_line_texts[wid]:
             if n_lines_processed >= cfg.max_lines:
                 break
             n_lines_processed += 1
+            pbar.update(1)
+            pbar.set_postfix(usable_words=n_letter_seg_ok, refresh=False)
             line_img = img_by_text.get(text)
             if line_img is None:
                 continue
@@ -386,8 +392,7 @@ def extract_glyph_banks(
                     writer_glyph_bank[wid][ch.lower()][case].append(glyph)
         if n_lines_processed >= cfg.max_lines:
             break
-        if n_lines_processed % 1000 == 0:
-            print(f"...{n_lines_processed} lines, {n_letter_seg_ok} usable words so far")
+    pbar.close()
 
     print("=== extraction statistics ===")
     print("lines processed:", n_lines_processed)

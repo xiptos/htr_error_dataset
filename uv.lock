@@ -1653,6 +1653,8 @@ all = [
     { name = "mlx-vlm", marker = "sys_platform == 'darwin'" },
     { name = "nltk" },
     { name = "pytesseract" },
+    { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.11.*'" },
+    { name = "scipy", version = "1.18.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
 ]
 evaluate = [
     { name = "kraken" },
@@ -1666,6 +1668,8 @@ notebooks = [
     { name = "matplotlib", version = "3.10.9", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "matplotlib", version = "3.11.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "nltk" },
+    { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.11.*'" },
+    { name = "scipy", version = "1.18.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
 ]
 
 [package.metadata]
@@ -1683,6 +1687,7 @@ requires-dist = [
     { name = "pandas", specifier = ">=2.0" },
     { name = "pillow", specifier = ">=10.0" },
     { name = "pytesseract", marker = "extra == 'evaluate'", specifier = ">=0.3.10" },
+    { name = "scipy", marker = "extra == 'notebooks'", specifier = ">=1.11" },
     { name = "sentencepiece", specifier = ">=0.2.0" },
     { name = "torch", specifier = ">=2.2" },
     { name = "tqdm", specifier = ">=4.70.1" },

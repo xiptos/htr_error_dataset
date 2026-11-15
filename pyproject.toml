@@ -23,6 +23,7 @@ notebooks = [
     "jupyter>=1.0",
     "matplotlib>=3.8",
     "nltk>=3.8",
+    "scipy>=1.11",
 ]
 # Running evaluate.py. mlx-vlm (the VLM backend) requires Apple Silicon;
 # tesseract/kraken are the two traditional-OCR backends and run anywhere.

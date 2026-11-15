@@ -1,5 +1,7 @@
 # HTR Error Dataset
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24244801.svg)](https://doi.org/10.5281/zenodo.24244801)
+
 A pipeline that builds a handwritten "writing-error" dataset: a set of
 (clean, corrupted) handwritten word-image pairs, where the corruption is a
 **genuine handwritten glyph of one letter spliced over another letter**,

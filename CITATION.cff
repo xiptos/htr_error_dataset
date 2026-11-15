@@ -14,6 +14,7 @@ authors:
     email: rlopes@ipb.pt
     affiliation: "Universidade Politécnica de Bragança"
     orcid: "https://orcid.org/0000-0002-9170-5078"
+doi: 10.5281/zenodo.24244801
 repository-code: "https://github.com/xiptos/htr_error_dataset"
 license: MIT
 version: 0.1.0

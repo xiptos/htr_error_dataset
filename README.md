@@ -90,6 +90,9 @@ evaluate.py               run one/all systems over the dataset -> results/predic
 results.ipynb              aggregate predictions into metrics & figures -> results/
 plotting.py                  shared figure style, used by both notebooks
 textmetrics.py                 shared edit-distance / normalization / dictionary helpers
+checksums.py                     write/verify per-image checksums against reference/
+
+reference/       metadata.csv + per-image checksums of the reference dataset
 
 pyproject.toml   project metadata, dependencies and the optional extras
 uv.lock          pinned dependency versions, used by `uv sync`
@@ -135,7 +138,9 @@ or `vllm`-based loader; the rest of the pipeline (`evaluate.py`,
 `results.ipynb`) is backend-agnostic.
 
 The first `generate_dataset.py` run downloads the two IAM-derived datasets
-and the TrOCR model from the Hugging Face Hub (cached under
+and the TrOCR model from the Hugging Face Hub, each pinned to the exact
+revision the reference dataset was built from (`*_REVISION` constants at the
+top of the script), (cached under
 `~/.cache/huggingface` afterward). `evaluate.py` additionally downloads
 each VLM's weights from `mlx-community` on first use (several GB each).
 
@@ -170,6 +175,20 @@ reference dataset):
 Running with the default `--max-lines` processes the IAM corpus through
 TrOCR and takes roughly 35-45 minutes on a single GPU/MPS device (most of
 the time is TrOCR inference); reduce `--max-lines` to iterate faster.
+
+To confirm a default-settings run reproduced the reference dataset exactly:
+
+```bash
+python checksums.py verify
+```
+
+This compares `dataset/metadata.csv` with `reference/metadata.csv`, and every
+image with `reference/image_sha256.csv`. Each image is hashed over its decoded
+pixels rather than its PNG bytes, so differences in PNG encoders do not cause
+false mismatches. The TrOCR validation step may make slightly different
+decisions on a different device (CPU/CUDA/MPS) or library version, which
+changes which words are kept. The reference dataset was built on Apple MPS
+with the versions in `uv.lock`.
 
 ### 2. Explore the dataset (EDA)
 
@@ -298,9 +317,15 @@ also applies a system's `cleanup`, if it has one), `cer`
 when a corrupted-image prediction matches the *original* word instead of
 the displayed, corrupted one).
 
+## License
+
+The code is released under the MIT License (see `LICENSE`). The IAM
+Handwriting Database, from which every image is derived, has its own terms
+of use; see its [website](https://fki.tic.heia-fr.ch/databases/iam-handwriting-database).
+
 ## Citations
 
-If you use this pipeline or the dataset it produces, please cite:
+To cite this software, see `CITATION.cff`. If you use this pipeline or the dataset it produces, please cite:
 
 - Karamolegkou et al., *"Reading or Guessing? Visual Grounding Failures of
   Vision-Language Models for OCR"*, arXiv:2605.27750 -- the evaluation

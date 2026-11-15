@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "HTR Error Dataset: generator for handwritten writing-error word pairs"
+abstract: >-
+  A pipeline that builds (clean, corrupted) handwritten word-image pairs from
+  the IAM Handwriting Database, where the corruption is a genuine handwritten
+  glyph of one letter spliced over another letter by the same writer, for
+  evaluating whether handwriting OCR/VLM systems transcribe faithfully or
+  repair implausible text.
+type: software
+authors:
+  - given-names: Rui Pedro
+    family-names: Lopes
+    email: rlopes@ipb.pt
+    affiliation: "Universidade Politécnica de Bragança"
+    orcid: "https://orcid.org/0000-0002-9170-5078zno"
+repository-code: "https://github.com/xiptos/htr_error_dataset"
+license: MIT
+version: 0.1.0
+date-released: "2026-11-15"
+keywords:
+  - handwriting recognition
+  - HTR
+  - OCR
+  - vision-language models
+  - visual grounding
+  - IAM database
+  - dataset

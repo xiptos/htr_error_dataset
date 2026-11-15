@@ -3,6 +3,7 @@ name = "htr-error-dataset"
 version = "0.1.0"
 description = "Generates a handwritten writing-error dataset by splicing real handwritten glyphs over other letters, for visual-grounding evaluation of handwriting OCR/VLM systems."
 requires-python = ">=3.10"
+license = "MIT"
 dependencies = [
     "datasets>=2.19",
     "ipykernel>=7.3.0",

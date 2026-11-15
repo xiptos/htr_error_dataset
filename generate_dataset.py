@@ -31,6 +31,12 @@ IAM_LINES_META = "AlhitawiMohammed22/En_IAM_lines"  # text + original IAM filena
 IAM_LINES_IMG = "Teklia/IAM-line"  # image + text, no writer id
 TROCR_MODEL = "microsoft/trocr-base-handwritten"
 
+# Hugging Face revisions the reference dataset was built from. Pinned so that
+# upstream changes to any of the three repos cannot silently change the output.
+IAM_LINES_META_REVISION = "d8f287a87409afc1519443414d52fa2f7d84dba4"
+IAM_LINES_IMG_REVISION = "fbdad97500ce54635c0d1ba306bf535cb40656cf"
+TROCR_MODEL_REVISION = "eaacaf452b06415df8f10bb6fad3a4c11e609406"
+
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -262,10 +268,10 @@ def word_is_plausible(pred: str, clean_word: str) -> bool:
 class TrOCRValidator:
     """Thin wrapper around a pretrained handwriting-recognition model."""
 
-    def __init__(self, model_name: str = TROCR_MODEL):
-        self.processor = TrOCRProcessor.from_pretrained(model_name)
+    def __init__(self, model_name: str = TROCR_MODEL, revision: str = TROCR_MODEL_REVISION):
+        self.processor = TrOCRProcessor.from_pretrained(model_name, revision=revision)
         self.model: VisionEncoderDecoderModel = VisionEncoderDecoderModel.from_pretrained(
-            model_name
+            model_name, revision=revision
         )
         self.device = (
             "mps" if torch.backends.mps.is_available()
@@ -300,8 +306,8 @@ def load_and_align(
         writer_ids_shuffled: distinct writer ids, shuffled.
     """
     print("Loading IAM line corpora...")
-    lines_meta = load_dataset(IAM_LINES_META, split="train")
-    lines_img_dd = load_dataset(IAM_LINES_IMG)
+    lines_meta = load_dataset(IAM_LINES_META, split="train", revision=IAM_LINES_META_REVISION)
+    lines_img_dd = load_dataset(IAM_LINES_IMG, revision=IAM_LINES_IMG_REVISION)
     all_img = concatenate_datasets(
         [lines_img_dd["train"], lines_img_dd["validation"], lines_img_dd["test"]]
     )

@@ -1,6 +1,6 @@
 [project]
 name = "htr-error-dataset"
-version = "0.1.0"
+version = "0.1.1"
 description = "Generates a handwritten writing-error dataset by splicing real handwritten glyphs over other letters, for visual-grounding evaluation of handwriting OCR/VLM systems."
 requires-python = ">=3.10"
 license = "MIT"
